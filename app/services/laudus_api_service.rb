@@ -4,10 +4,10 @@ require 'json'
 class LaudusApiService
   BASE_URL = "https://api.laudus.cl"
 
-  def initialize(username, password, company_vat_id)
-    @username = username
-    @password = password
-    @company_vat_id = company_vat_id
+  def initialize
+    @username = ENV['LAUDUS_USERNAME']
+    @password = ENV['LAUDUS_PASSWORD']
+    @company_vat_id = ENV['LAUDUS_COMPANY_VAT_ID']
     @token = get_token
   end
 
