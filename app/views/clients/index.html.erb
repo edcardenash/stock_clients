@@ -1,0 +1,22 @@
+<h1>Lista de Clientes</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID Cliente</th>
+      <th>Nombre Legal</th>
+      <th>RUT</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @clients.each do |client| %>
+      <tr>
+        <td><%= client['customerId'] %></td>
+        <td><%= client['legalName'] %></td>
+        <td><%= client['VATId'] %></td>
+        <td><%= link_to 'Ver Detalle', client_path(client['customerId']) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
