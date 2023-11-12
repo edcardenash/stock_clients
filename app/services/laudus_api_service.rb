@@ -27,22 +27,27 @@ class LaudusApiService
     body = {
       options: {
         offset: 0,
-        limit: 50
+        limit: 0
       },
       fields: ["customerId", "legalName", "VATId"],
       filterBy: filters,
-      orderBy: [{ field: "VATId", direction: "ASC" }]
+      orderBy: [{ field: "legalName", direction: "ASC" }]
     }.to_json
 
     response = RestClient.post "#{BASE_URL}/sales/customers/list", body, headers
-    JSON.parse(response.body)
-  rescue RestClient::ExceptionWithResponse => e
-    e.response
-  end
+  puts response.body  # Imprime para depuración
+  JSON.parse(response.body)
+rescue RestClient::ExceptionWithResponse => e
+  Rails.logger.error "Error al obtener clientes: #{e.response}"
+  [] # Devuelve un array vacío en caso de error
+end
 
   private
 
   def headers
-    { 'Authorization' => "Bearer #{@token}", 'Content-Type' => 'application/json' }
+    { 'Authorization' => "Bearer #{@token}",
+     'Content-Type' => 'application/json',
+     'Accept' => 'application/json'
+   }
   end
 end
