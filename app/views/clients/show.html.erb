@@ -9,7 +9,8 @@
   <% @purchase_products.each do |purchase_product| %>
   <p>
     Nombre del Producto: <%= purchase_product[:product]['description'] %><br>
-    Stock Actual: <%= purchase_product[:stock] %>
+    Stock Actual: <%= purchase_product[:stock] %><br>
+    Peso (Kg): <%= purchase_product[:notes] %>
   </p>
 <% end %>
 
