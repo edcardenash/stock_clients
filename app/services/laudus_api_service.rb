@@ -35,11 +35,11 @@ class LaudusApiService
     }.to_json
 
     response = RestClient.post "#{BASE_URL}/sales/customers/list", body, headers
-  puts response.body  # Imprime para depuración
+    puts response.body
   JSON.parse(response.body)
 rescue RestClient::ExceptionWithResponse => e
-  Rails.logger.error "Error al obtener clientes: #{e.response}"
-  [] # Devuelve un array vacío en caso de error
+  puts e.response
+  []
 end
 
   private
