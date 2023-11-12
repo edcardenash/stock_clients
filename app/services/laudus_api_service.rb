@@ -43,12 +43,20 @@ class LaudusApiService
   end
 
   def get_client_details(customer_id)
+    cached_client = $redis.get("client_#{customer_id}")
+    return JSON.parse(cached_client) if cached_client
+
     response = RestClient.get "#{BASE_URL}/sales/customers/#{customer_id}", headers
-    JSON.parse(response.body)
+    client_details = JSON.parse(response.body)
+    $redis.set("client_#{customer_id}", client_details.to_json)
+    $redis.expire("client_#{customer_id}", 12.hours.to_i)
+
+    client_details
   rescue RestClient::ExceptionWithResponse => e
     Rails.logger.error "Error al obtener detalles del cliente: #{e.response}"
     nil
   end
+
 
   def get_client_purchase_record(customer_id)
     response = RestClient.get "#{BASE_URL}/reports/sales/invoices/byCustomer?customerId=#{customer_id}", headers
@@ -59,12 +67,20 @@ class LaudusApiService
   end
 
   def get_product(product_id)
+    cached_product = $redis.get("product_#{product_id}")
+    return JSON.parse(cached_product) if cached_product
+
     response = RestClient.get "#{BASE_URL}/production/products/#{product_id}", headers
-    JSON.parse(response.body)
+    product_details = JSON.parse(response.body)
+    $redis.set("product_#{product_id}", product_details.to_json)
+    $redis.expire("product_#{product_id}", 12.hours.to_i)
+
+    product_details
   rescue RestClient::ExceptionWithResponse => e
     Rails.logger.error "Error al obtener detalles del producto: #{e.response}"
     nil
   end
+
 
   def get_stock_product(product_id)
     response = RestClient.get "#{BASE_URL}/production/products/#{product_id}/stock", headers
@@ -75,6 +91,8 @@ class LaudusApiService
   end
 
   def get_invoices_list_by_customer(customer_id)
+    cached_invoices = $redis.get("invoices_#{customer_id}")
+    return JSON.parse(cached_invoices) if cached_invoices
     body = {
       filterBy: [
         { field: "customerId", operator: "=", value: customer_id }
@@ -82,25 +100,37 @@ class LaudusApiService
       fields: ["salesInvoiceId"],
       options: {
         offset: 0,
-        limit: 5
+        limit: 0
       },
       orderBy: [{ field: "issuedDate", direction: "ASC" }] # Cambia 'issuedDate' por el campo adecuado
     }.to_json
     response = RestClient.post "#{BASE_URL}/sales/invoices/list", body, headers
-    JSON.parse(response.body)
+    invoices_list = JSON.parse(response.body)
+    $redis.set("invoices_#{customer_id}", invoices_list.to_json)
+    $redis.expire("invoices_#{customer_id}", 12.hours.to_i)
+
+    invoices_list
   rescue RestClient::ExceptionWithResponse => e
     Rails.logger.error "Error al obtener listado de facturas: #{e.response}"
     []
-  end
+end
 
 
-  def get_invoice_details(salesInvoiceId)
-    response = RestClient.get "#{BASE_URL}/sales/invoices/#{salesInvoiceId}", headers
-    JSON.parse(response.body)
-  rescue RestClient::ExceptionWithResponse => e
-    Rails.logger.error "Error al obtener detalles de la factura: #{e.response}"
-    nil
-  end
+def get_invoice_details(salesInvoiceId)
+  cached_invoice = $redis.get("invoice_#{salesInvoiceId}")
+  return JSON.parse(cached_invoice) if cached_invoice
+
+  response = RestClient.get "#{BASE_URL}/sales/invoices/#{salesInvoiceId}", headers
+  invoice_details = JSON.parse(response.body)
+  $redis.set("invoice_#{salesInvoiceId}", invoice_details.to_json)
+  $redis.expire("invoice_#{salesInvoiceId}", 12.hours.to_i)
+
+  invoice_details
+rescue RestClient::ExceptionWithResponse => e
+  Rails.logger.error "Error al obtener detalles de la factura: #{e.response}"
+  nil
+end
+
 
   private
 
