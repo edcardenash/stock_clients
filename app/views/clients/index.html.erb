@@ -1,9 +1,13 @@
 <h1>Lista de Clientes</h1>
 
+<%= form_with(url: clients_path, method: "get") do |form| %>
+  <%= form.text_field :search, placeholder: "Buscar cliente" %>
+  <%= form.submit "Buscar" %>
+<% end %>
+
 <table>
   <thead>
     <tr>
-      <th>ID Cliente</th>
       <th>Nombre Legal</th>
       <th>RUT</th>
       <th>Acciones</th>
@@ -12,7 +16,6 @@
   <tbody>
     <% @clients.each do |client| %>
       <tr>
-        <td><%= client['customerId'] %></td>
         <td><%= client['legalName'] %></td>
         <td><%= client['VATId'] %></td>
         <td><%= link_to 'Ver Detalle', client_path(client['customerId']) %></td>
@@ -20,3 +23,4 @@
     <% end %>
   </tbody>
 </table>
+<%= paginate @clients %>
