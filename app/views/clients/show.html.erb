@@ -1,0 +1,16 @@
+<!-- Detalles del Cliente -->
+<h1>Cliente: <%= @client['description'] %></h1>
+<!-- Otros detalles del cliente -->
+
+<!-- Productos Comprados -->
+<h2>Productos Comprados</h2>
+<table>
+  <!-- Cabeceras de la tabla -->
+  <% @purchase_products.each do |purchase_product| %>
+  <p>
+    Nombre del Producto: <%= purchase_product[:product]['description'] %><br>
+    Stock Actual: <%= purchase_product[:stock] %>
+  </p>
+<% end %>
+
+</table>
