@@ -36,11 +36,71 @@ class LaudusApiService
 
     response = RestClient.post "#{BASE_URL}/sales/customers/list", body, headers
     puts response.body
-  JSON.parse(response.body)
-rescue RestClient::ExceptionWithResponse => e
-  puts e.response
-  []
-end
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    puts e.response
+    []
+  end
+
+  def get_client_details(customer_id)
+    response = RestClient.get "#{BASE_URL}/sales/customers/#{customer_id}", headers
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener detalles del cliente: #{e.response}"
+    nil
+  end
+
+  def get_client_purchase_record(customer_id)
+    response = RestClient.get "#{BASE_URL}/reports/sales/invoices/byCustomer?customerId=#{customer_id}", headers
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener historial de compras: #{e.response}"
+    []
+  end
+
+  def get_product(product_id)
+    response = RestClient.get "#{BASE_URL}/production/products/#{product_id}", headers
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener detalles del producto: #{e.response}"
+    nil
+  end
+
+  def get_stock_product(product_id)
+    response = RestClient.get "#{BASE_URL}/production/products/#{product_id}/stock", headers
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener stock del producto: #{e.response}"
+    nil
+  end
+
+  def get_invoices_list_by_customer(customer_id)
+    body = {
+      filterBy: [
+        { field: "customerId", operator: "=", value: customer_id }
+      ],
+      fields: ["salesInvoiceId"],
+      options: {
+        offset: 0,
+        limit: 5
+      },
+      orderBy: [{ field: "issuedDate", direction: "ASC" }] # Cambia 'issuedDate' por el campo adecuado
+    }.to_json
+    response = RestClient.post "#{BASE_URL}/sales/invoices/list", body, headers
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener listado de facturas: #{e.response}"
+    []
+  end
+
+
+  def get_invoice_details(salesInvoiceId)
+    response = RestClient.get "#{BASE_URL}/sales/invoices/#{salesInvoiceId}", headers
+    JSON.parse(response.body)
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener detalles de la factura: #{e.response}"
+    nil
+  end
 
   private
 
