@@ -88,26 +88,16 @@ class LaudusApiService
     nil
   end
 
-  def get_invoices_list_by_customer(customer_id)
-    cached_invoices = $redis.get("invoices_#{customer_id}")
-    return JSON.parse(cached_invoices) if cached_invoices
+  def get_invoices_list_by_customer(customer_id, last_processed_invoice_id)
     body = {
-      filterBy: [
-        { field: "customerId", operator: "=", value: customer_id }
-      ],
-      fields: ["salesInvoiceId"],
-      options: {
-        offset: 0,
-        limit: 0
-      },
-      orderBy: [{ field: "issuedDate", direction: "ASC" }] # Cambia 'issuedDate' por el campo adecuado
+      filterBy: [{ field: "customerId", operator: "=", value: customer_id },
+                 { field: "salesInvoiceId", operator: ">", value: last_processed_invoice_id }],
+      fields: ["salesInvoiceId", "customerId", "items"],
+      options: { offset: 0, limit: 0 }
     }.to_json
-    response = RestClient.post "#{BASE_URL}/sales/invoices/list", body, headers
-    invoices_list = JSON.parse(response.body)
-    $redis.set("invoices_#{customer_id}", invoices_list.to_json)
-    $redis.expire("invoices_#{customer_id}", 12.hours.to_i)
 
-    invoices_list
+    response = RestClient.post "#{BASE_URL}/sales/invoices/list", body, headers
+    JSON.parse(response.body)
   rescue RestClient::ExceptionWithResponse => e
     Rails.logger.error "Error al obtener listado de facturas: #{e.response}"
     []
