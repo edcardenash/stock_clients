@@ -21,6 +21,7 @@ class UpdateClientProductsJob < ApplicationJob
       end
     end
     update_last_processed_invoice_id(invoice['salesInvoiceId'])
+
   end
 
   def obtain_last_processed_invoice_id
