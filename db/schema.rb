@@ -10,9 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_13_195456) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_13_203400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "app_settings", force: :cascade do |t|
+    t.string "key"
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "client_products", force: :cascade do |t|
     t.bigint "client_id", null: false
@@ -28,6 +35,23 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_13_195456) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "invoice_products", force: :cascade do |t|
+    t.bigint "invoice_id", null: false
+    t.bigint "product_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invoice_id"], name: "index_invoice_products_on_invoice_id"
+    t.index ["product_id"], name: "index_invoice_products_on_product_id"
+  end
+
+  create_table "invoices", force: :cascade do |t|
+    t.integer "invoice_id"
+    t.bigint "client_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_invoices_on_client_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -52,4 +76,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_13_195456) do
 
   add_foreign_key "client_products", "clients"
   add_foreign_key "client_products", "products"
+  add_foreign_key "invoice_products", "invoices"
+  add_foreign_key "invoice_products", "products"
+  add_foreign_key "invoices", "clients"
 end
