@@ -57,7 +57,6 @@ class LaudusApiService
     nil
   end
 
-
   def get_client_purchase_record(customer_id)
     response = RestClient.get "#{BASE_URL}/reports/sales/invoices/byCustomer?customerId=#{customer_id}", headers
     JSON.parse(response.body)
@@ -80,7 +79,6 @@ class LaudusApiService
     Rails.logger.error "Error al obtener detalles del producto: #{e.response}"
     nil
   end
-
 
   def get_stock_product(product_id)
     response = RestClient.get "#{BASE_URL}/production/products/#{product_id}/stock", headers
@@ -113,24 +111,22 @@ class LaudusApiService
   rescue RestClient::ExceptionWithResponse => e
     Rails.logger.error "Error al obtener listado de facturas: #{e.response}"
     []
-end
+  end
 
+  def get_invoice_details(salesInvoiceId)
+    cached_invoice = $redis.get("invoice_#{salesInvoiceId}")
+    return JSON.parse(cached_invoice) if cached_invoice
 
-def get_invoice_details(salesInvoiceId)
-  cached_invoice = $redis.get("invoice_#{salesInvoiceId}")
-  return JSON.parse(cached_invoice) if cached_invoice
+    response = RestClient.get "#{BASE_URL}/sales/invoices/#{salesInvoiceId}", headers
+    invoice_details = JSON.parse(response.body)
+    $redis.set("invoice_#{salesInvoiceId}", invoice_details.to_json)
+    $redis.expire("invoice_#{salesInvoiceId}", 12.hours.to_i)
 
-  response = RestClient.get "#{BASE_URL}/sales/invoices/#{salesInvoiceId}", headers
-  invoice_details = JSON.parse(response.body)
-  $redis.set("invoice_#{salesInvoiceId}", invoice_details.to_json)
-  $redis.expire("invoice_#{salesInvoiceId}", 12.hours.to_i)
-
-  invoice_details
-rescue RestClient::ExceptionWithResponse => e
-  Rails.logger.error "Error al obtener detalles de la factura: #{e.response}"
-  nil
-end
-
+    invoice_details
+  rescue RestClient::ExceptionWithResponse => e
+    Rails.logger.error "Error al obtener detalles de la factura: #{e.response}"
+    nil
+  end
 
   private
 
