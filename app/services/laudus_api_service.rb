@@ -57,15 +57,6 @@ class LaudusApiService
     nil
   end
 
-
-  def get_client_purchase_record(customer_id)
-    response = RestClient.get "#{BASE_URL}/reports/sales/invoices/byCustomer?customerId=#{customer_id}", headers
-    JSON.parse(response.body)
-  rescue RestClient::ExceptionWithResponse => e
-    Rails.logger.error "Error al obtener historial de compras: #{e.response}"
-    []
-  end
-
   def get_product(product_id)
     cached_product = $redis.get("product_#{product_id}")
     return JSON.parse(cached_product) if cached_product
@@ -81,63 +72,62 @@ class LaudusApiService
     nil
   end
 
-
-  def get_stock_product(product_id)
-    response = RestClient.get "#{BASE_URL}/production/products/#{product_id}/stock", headers
-    JSON.parse(response.body)
+  def get_all_products_stock
+    cached_stock = $redis.get("all_products_stock")
+    return JSON.parse(cached_stock) if cached_stock
+    response = HTTParty.get(
+      "#{BASE_URL}/production/products/stock",
+      headers: {
+        'Authorization' => "Bearer #{@token}",
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
+      }
+    )
+    stock_data = JSON.parse(response.body)['products']
+    $redis.set("all_products_stock", stock_data.to_json)
+    $redis.expire("all_products_stock", 12 * 60 * 60)
+    stock_data
   rescue RestClient::ExceptionWithResponse => e
-    Rails.logger.error "Error al obtener stock del producto: #{e.response}"
+    Rails.logger.error "Error al obtener stock de todos los productos: #{e.response}"
+    nil
+  rescue RuntimeError => e
+    Rails.logger.error e.message
     nil
   end
 
-  def get_invoices_list_by_customer(customer_id)
-    cached_invoices = $redis.get("invoices_#{customer_id}")
-    return JSON.parse(cached_invoices) if cached_invoices
+  def get_orders_by_customer(customer_id)
+    cached_orders = $redis.get("orders_#{customer_id}")
+
+    if cached_orders
+      Rails.logger.info "Retrieved orders for customer #{customer_id} from cache"
+      return JSON.parse(cached_orders)
+    end
+
     body = {
-      filterBy: [
-        { field: "customerId", operator: "=", value: customer_id }
-      ],
-      fields: ["salesInvoiceId"],
-      options: {
-        offset: 0,
-        limit: 0
-      },
-      orderBy: [{ field: "issuedDate", direction: "ASC" }] # Cambia 'issuedDate' por el campo adecuado
+      fields: ["customer.customerId", "items.product.productId", "items.product.sku", "items.product.description", "items.product.notes"],
+      filterBy: [{ field: "customer.customerId", operator: "=", value: customer_id }]
     }.to_json
-    response = RestClient.post "#{BASE_URL}/sales/invoices/list", body, headers
-    invoices_list = JSON.parse(response.body)
-    $redis.set("invoices_#{customer_id}", invoices_list.to_json)
-    $redis.expire("invoices_#{customer_id}", 12.hours.to_i)
 
-    invoices_list
+    response = RestClient.post "#{BASE_URL}/sales/orders/list", body, headers
+    orders = JSON.parse(response.body)
+
+    $redis.set("orders_#{customer_id}", orders.to_json)
+
+    Rails.logger.info "Retrieved orders for customer #{customer_id} from API and cached"
+
+    orders
   rescue RestClient::ExceptionWithResponse => e
-    Rails.logger.error "Error al obtener listado de facturas: #{e.response}"
+    Rails.logger.error "Error al obtener órdenes por cliente: #{e.response}"
     []
-end
-
-
-def get_invoice_details(salesInvoiceId)
-  cached_invoice = $redis.get("invoice_#{salesInvoiceId}")
-  return JSON.parse(cached_invoice) if cached_invoice
-
-  response = RestClient.get "#{BASE_URL}/sales/invoices/#{salesInvoiceId}", headers
-  invoice_details = JSON.parse(response.body)
-  $redis.set("invoice_#{salesInvoiceId}", invoice_details.to_json)
-  $redis.expire("invoice_#{salesInvoiceId}", 12.hours.to_i)
-
-  invoice_details
-rescue RestClient::ExceptionWithResponse => e
-  Rails.logger.error "Error al obtener detalles de la factura: #{e.response}"
-  nil
-end
-
+  end
 
   private
 
   def headers
-    { 'Authorization' => "Bearer #{@token}",
-     'Content-Type' => 'application/json',
-     'Accept' => 'application/json'
-   }
+    {
+      'Authorization' => "Bearer #{@token}",
+      'Content-Type' => 'application/json',
+      'Accept' => 'application/json'
+    }
   end
 end
