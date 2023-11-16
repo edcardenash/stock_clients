@@ -3,12 +3,8 @@ class ClientsController < ApplicationController
   def index
     api_service = LaudusApiService.new
     filters = []
-
     if params[:search].present?
       filters.push({ field: "legalName", operator: "contains", value: params[:search] })
-      # if number?(params[:search])
-      # filters.push({ field: "VATId", operator: "contains", value: params[:search] })
-      # end
     else
       filters.push({ field: "customerId", operator: ">=", value: 0 })
     end
@@ -17,33 +13,45 @@ class ClientsController < ApplicationController
   end
 
   def show
+    iia = ENV.fetch("IIA", 4).to_f
     api_service = LaudusApiService.new
     @client = api_service.get_client_details(params[:id])
     customer_id = params[:id].to_i
-    invoices_list = api_service.get_invoices_list_by_customer(customer_id)
+
+    all_stock = api_service.get_all_products_stock
+
+    stock_hash = all_stock&.each_with_object({}) do |product, hash|
+      hash[product['productId']] = product['stock']
+    end || {}
+
+    orders = api_service.get_orders_by_customer(customer_id)
 
     products_hash = {}
-    invoices_list.each do |invoice|
-      invoice_id = invoice['salesInvoiceId']
-      invoice_details = api_service.get_invoice_details(invoice_id)
-      next unless invoice_details && invoice_details['items']
+    if orders
+      orders.each do |order|
+        product_id = order["items_product_productId"]
+        next unless product_id && stock_hash.key?(product_id)
 
-      invoice_details['items'].each do |item|
-        product_id = item['product']['productId']
-        next if products_hash[product_id]
-
-        product_details = api_service.get_product(product_id)
-        stock_details = api_service.get_stock_product(product_id)
-        products_hash[product_id] = { product: product_details, stock: stock_details['stock'] }
+        products_hash[product_id] = {
+          sku: order["items_product_sku"],
+          description: order["items_product_description"],
+          notes: convert_to_float(order["items_product_notes"]),
+          stock: stock_hash[product_id].to_i,
+          valor_usd: convert_to_float(order["items_product_notes"]) * iia
+        }
       end
     end
-    @purchase_products = products_hash.values
+    product_page = params[:product_page] || 1
+    per_page = 10
+    total_products = products_hash.values.size
+    @purchase_products = Kaminari.paginate_array(products_hash.values, total_count: total_products).page(product_page).per(per_page)
+
+    flash.now[:error] = "No se pudo obtener el stock de los productos" if all_stock.nil?
   end
 
+  private
 
-  # private
-
-  # def number?(string)
-  #   true if Integer(string) rescue false
-  # end
+  def convert_to_float(value)
+    value.to_s.gsub(',', '.').to_f
+  end
 end

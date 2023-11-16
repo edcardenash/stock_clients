@@ -1,17 +1,27 @@
-<!-- Detalles del Cliente -->
-<h1>Cliente: <%= @client['description'] %></h1>
-<!-- Otros detalles del cliente -->
-
-<!-- Productos Comprados -->
 <h2>Productos Comprados</h2>
-<table>
-  <!-- Cabeceras de la tabla -->
-  <% @purchase_products.each do |purchase_product| %>
-  <p>
-    Nombre del Producto: <%= purchase_product[:product]['description'] %><br>
-    Stock Actual: <%= purchase_product[:stock] %><br>
-    Peso (Kg): <%= purchase_product[:notes] %>
-  </p>
-<% end %>
+<%= paginate @purchase_products, param_name: 'product_page' %>
 
+<table>
+  <thead>
+    <tr>
+      <th>SKU del Producto</th>
+      <th>Nombre del Producto</th>
+      <th>Peso</th>
+      <th>Stock Actual</th>
+      <th>Valor USD</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @purchase_products.each do |product| %>
+      <tr>
+        <td><%= product[:sku] %></td>
+        <td><%= product[:description] %></td>
+        <td><%= product[:notes] %></td>
+        <td><%= product[:stock] %></td>
+        <td><%= product[:valor_usd] %></td>
+      </tr>
+    <% end %>
+  </tbody>
 </table>
+
+<%= paginate @purchase_products, param_name: 'product_page' %>
