@@ -1,0 +1,8 @@
+---
+default:
+  steel_value: 0.0005596
+development:
+  steel_value: 0.0005596
+production:
+  steel_value: 0.0005596
+steel_value: 0.0005596

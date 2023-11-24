@@ -1,5 +1,7 @@
 class ClientsController < ApplicationController
+  before_action :set_steel_value
   skip_before_action :authenticate_user!, only: [:index, :show]
+
   def index
     api_service = LaudusApiService.new
     filters = []
@@ -13,7 +15,7 @@ class ClientsController < ApplicationController
   end
 
   def show
-    iia = ENV.fetch("IIA", 4).to_f
+    steel_value = @steel_value
     api_service = LaudusApiService.new
     @client = api_service.get_client_details(params[:id])
     customer_id = params[:id].to_i
@@ -53,5 +55,11 @@ class ClientsController < ApplicationController
 
   def convert_to_float(value)
     value.to_s.gsub(',', '.').to_f
+  end
+
+  def set_steel_value
+    config_path = Rails.root.join('config', 'steel.yml')
+    config = YAML.load_file(config_path)
+    @steel_value = config['steel_value']
   end
 end
