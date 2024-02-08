@@ -7,7 +7,6 @@ module ExchangeRateServices
     response = Net::HTTP.get(url)
     data = JSON.parse(response)
     exchange_rate = data['conversion_rates']['USD']
-    puts "Tipo de cambio CNY a USD: #{exchange_rate}"
     amount_in_cny * exchange_rate
   rescue StandardError => e
     Rails.logger.error "Error al convertir CNY a USD: #{e.message}"

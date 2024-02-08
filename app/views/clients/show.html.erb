@@ -1,14 +1,21 @@
-<h2>Productos Comprados</h2>
+<p>
+  Current value of steel: <%= @steel_value.round(2) %> USD/Kg
+  <br>
+  Update date: <%= @last_updated %>
+</p>
+<%= button_to "Update Steel Value", update_steel_for_client_path(client_id: @customer_id), method: :post %>
+
+<h2>Purchased products</h2>
 <%= paginate @purchase_products, param_name: 'product_page' %>
 
 <table>
   <thead>
     <tr>
-      <th>SKU del Producto</th>
-      <th>Nombre del Producto</th>
-      <th>Peso</th>
-      <th>Stock Actual</th>
-      <th>Valor USD</th>
+      <th>Code</th>
+      <th>Description</th>
+      <th>Weight</th>
+      <th>Stock</th>
+      <th>USD</th>
     </tr>
   </thead>
   <tbody>

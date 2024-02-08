@@ -1,6 +1,6 @@
 class ClientsController < ApplicationController
   before_action :set_steel_value
-  skip_before_action :authenticate_user!, only: [:index, :show]
+  skip_before_action :authenticate_user!, only: [:index, :show, :update_steel]
 
   def index
     api_service = LaudusApiService.new
@@ -15,10 +15,13 @@ class ClientsController < ApplicationController
   end
 
   def show
-    steel_value = @steel_value
+    config_path = Rails.root.join('config', 'steel.yml')
+    config = YAML.load_file(config_path)
+    @steel_value = config['steel_value']
+    @last_updated = config['last_updated']
     api_service = LaudusApiService.new
     @client = api_service.get_client_details(params[:id])
-    customer_id = params[:id].to_i
+    @customer_id = params[:id].to_i
 
     all_stock = api_service.get_all_products_stock
 
@@ -26,7 +29,7 @@ class ClientsController < ApplicationController
       hash[product['productId']] = product['stock']
     end || {}
 
-    orders = api_service.get_orders_by_customer(customer_id)
+    orders = api_service.get_orders_by_customer(@customer_id)
 
     products_hash = {}
     if orders
@@ -39,7 +42,7 @@ class ClientsController < ApplicationController
           description: order["items_product_description"],
           notes: convert_to_float(order["items_product_notes"]),
           stock: stock_hash[product_id].to_i,
-          valor_usd: convert_to_float(order["items_product_notes"]) * iia
+          valor_usd: (convert_to_float(order["items_product_notes"]) * @steel_value).round(2)
         }
       end
     end
@@ -49,6 +52,11 @@ class ClientsController < ApplicationController
     @purchase_products = Kaminari.paginate_array(products_hash.values, total_count: total_products).page(product_page).per(per_page)
 
     flash.now[:error] = "No se pudo obtener el stock de los productos" if all_stock.nil?
+  end
+
+  def update_steel
+    system 'rake scrape_trading_economics:update_steel'
+    redirect_to client_path(params[:client_id]), notice: 'Valor del acero actualizado.'
   end
 
   private
