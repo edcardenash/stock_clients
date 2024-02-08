@@ -49,7 +49,7 @@ class LaudusApiService
     response = RestClient.get "#{BASE_URL}/sales/customers/#{customer_id}", headers
     client_details = JSON.parse(response.body)
     $redis.set("client_#{customer_id}", client_details.to_json)
-    $redis.expire("client_#{customer_id}", 12.hours.to_i)
+    $redis.expire("client_#{customer_id}", 730.hours.to_i)
 
     client_details
   rescue RestClient::ExceptionWithResponse => e
@@ -64,7 +64,7 @@ class LaudusApiService
     response = RestClient.get "#{BASE_URL}/production/products/#{product_id}", headers
     product_details = JSON.parse(response.body)
     $redis.set("product_#{product_id}", product_details.to_json)
-    $redis.expire("product_#{product_id}", 12.hours.to_i)
+    $redis.expire("product_#{product_id}", 24.hours.to_i)
 
     product_details
   rescue RestClient::ExceptionWithResponse => e
@@ -85,7 +85,7 @@ class LaudusApiService
     )
     stock_data = JSON.parse(response.body)['products']
     $redis.set("all_products_stock", stock_data.to_json)
-    $redis.expire("all_products_stock", 12 * 60 * 60)
+    $redis.expire("all_products_stock", 24 * 60 * 60)
     stock_data
   rescue RestClient::ExceptionWithResponse => e
     Rails.logger.error "Error al obtener stock de todos los productos: #{e.response}"
