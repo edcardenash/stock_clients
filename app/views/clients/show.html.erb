@@ -1,34 +1,41 @@
-<p>
-  Current value of steel: <%= @steel_value.round(2) %> USD/Kg
-  <br>
-  Update date: <%= @last_updated %>
-</p>
-<%= button_to "Update Steel Value", update_steel_for_client_path(client_id: @customer_id), method: :post %>
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-12">
+      <p class="lead">
+        Current value of steel: <%= @steel_value.round(2) %> USD/Kg<br>
+        Update date: <%= @last_updated %>
+      </p>
+      <%= button_to "Update Steel Value", update_steel_for_client_path(client_id: @customer_id), method: :post, class: "btn btn-primary" %>
+    </div>
+  </div>
 
-<h2>Purchased products</h2>
-<%= paginate @purchase_products, param_name: 'product_page' %>
-
-<table>
-  <thead>
-    <tr>
-      <th>Code</th>
-      <th>Description</th>
-      <th>Weight</th>
-      <th>Stock</th>
-      <th>USD</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @purchase_products.each do |product| %>
-      <tr>
-        <td><%= product[:sku] %></td>
-        <td><%= product[:description] %></td>
-        <td><%= product[:notes] %></td>
-        <td><%= product[:stock] %></td>
-        <td><%= product[:valor_usd] %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<%= paginate @purchase_products, param_name: 'product_page' %>
+  <div class="row mt-4">
+    <div class="col-12">
+      <h2>Purchased Products</h2>
+      <%= paginate @purchase_products, param_name: 'product_page' %>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Weight</th>
+            <th>Stock</th>
+            <th>USD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @purchase_products.each do |product| %>
+            <tr>
+              <td><%= product[:sku] %></td>
+              <td><%= product[:description] %></td>
+              <td><%= product[:notes] %></td>
+              <td><%= product[:stock] %></td>
+              <td><%= product[:valor_usd] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <%= paginate @purchase_products, param_name: 'product_page' %>
+    </div>
+  </div>
+</div>
