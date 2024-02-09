@@ -1,26 +1,28 @@
-<h1>Lista de Clientes</h1>
+<div class="container mt-3">
+  <h1>Clients List</h1>
 
-<%= form_with(url: clients_path, method: "get") do |form| %>
-  <%= form.text_field :search, placeholder: "Buscar cliente" %>
-  <%= form.submit "Buscar" %>
-<% end %>
+  <%= form_with(url: clients_path, method: "get", class: "d-flex gap-2 mb-3") do |form| %>
+    <%= form.text_field :search, placeholder: "Search client", class: "form-control" %>
+    <%= form.submit "Search", class: "btn btn-primary" %>
+  <% end %>
 
-<table>
-  <thead>
-    <tr>
-      <th>Nombre Legal</th>
-      <th>RUT</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @clients.each do |client| %>
+  <table class="table table-hover">
+    <thead>
       <tr>
-        <td><%= client['legalName'] %></td>
-        <td><%= client['VATId'] %></td>
-        <td><%= link_to 'Ver Detalle', client_path(client['customerId']) %></td>
+        <th>Name</th>
+        <th>RUT</th>
+        <th></th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
-<%= paginate @clients %>
+    </thead>
+    <tbody>
+      <% @clients.each do |client| %>
+        <tr>
+          <td><%= client['legalName'] %></td>
+          <td><%= client['VATId'] %></td>
+          <td><%= link_to 'Deatils', client_path(client['customerId']), class: "btn btn-info" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <%= paginate @clients, class: "pagination" %>
+</div>
