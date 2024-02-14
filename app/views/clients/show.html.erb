@@ -5,7 +5,7 @@
         Current value of steel: <%= @steel_value.round(2) %> USD/Kg<br>
         Update date: <%= @last_updated %>
       </p>
-      <%= button_to "Update Steel Value", update_steel_for_client_path(client_id: @customer_id), method: :post, class: "btn btn-primary" %>
+      <%= button_to "Update Steel Value", update_steel_for_client_path(client_id: @customer_id), method: :post, class: "btn btn-primary", data: { remote: true } %>
     </div>
   </div>
 
@@ -39,3 +39,4 @@
     </div>
   </div>
 </div>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

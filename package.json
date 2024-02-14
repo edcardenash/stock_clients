@@ -1,0 +1,8 @@
+{
+  "name": "stock_clients",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:edcardenash/stock_clients.git",
+  "author": "Edgar Cárdenas <edcardenashorta@gmail.com>",
+  "license": "MIT"
+}

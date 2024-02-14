@@ -1,9 +1,9 @@
 ---
 default:
-  steel_value: 0.939890463
+  steel_value: 0.9392137960000001
 development:
-  steel_value: 0.939890463
+  steel_value: 0.9392137960000001
 production:
-  steel_value: 0.939890463
-steel_value: 0.939890463
-last_updated: '2024-02-08 18:30:49'
+  steel_value: 0.9392137960000001
+steel_value: 0.9392137960000001
+last_updated: '2024-02-10 15:01:30'

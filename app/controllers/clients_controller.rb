@@ -56,7 +56,10 @@ class ClientsController < ApplicationController
 
   def update_steel
     system 'rake scrape_trading_economics:update_steel'
-    redirect_to client_path(params[:client_id]), notice: 'Valor del acero actualizado.'
+    respond_to do |format|
+      format.html { redirect_to client_path(params[:client_id]), notice: 'Steel value updated.' }
+      format.js
+    end
   end
 
   private
